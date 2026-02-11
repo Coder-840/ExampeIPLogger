@@ -4,7 +4,7 @@ import os
 import requests
 
 app = Flask(__name__)
-app.secret_key = "change-this-for-security"
+app.secret_key = "A6a4LaI0CSSESDKXMssV"
 
 # --- CONFIG ---
 ADMIN_PASSWORD = "your-password"
