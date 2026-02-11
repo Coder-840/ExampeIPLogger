@@ -3,7 +3,7 @@ import datetime
 import os
 
 app = Flask(__name__)
-app.secret_key = "any-random-string-here" # Needed for login sessions
+app.secret_key = "aby2837aufwh228dewuey389" # Needed for login sessions
 
 # --- CONFIGURATION ---
 ADMIN_PASSWORD = "your-secret-password"  # CHANGE THIS!
