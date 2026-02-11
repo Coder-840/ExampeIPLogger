@@ -16,7 +16,7 @@ recorded_ips = []
 VERIFY_HTML = """
 <!DOCTYPE html>
 <html>
-<head><title>Server Verification</title><style>
+<head><title>Startup</title><style>
     body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
     .box { background: #333; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
     input { padding: 10px; width: 200px; border: none; border-radius: 4px; margin-bottom: 10px; }
@@ -25,10 +25,10 @@ VERIFY_HTML = """
 </style></head>
 <body>
     <div class="box">
-        <h2>MC Server Access</h2>
-        <p>Enter your username to verify your IP</p>
+        <h2>Lets get started!</h2>
+        <p>Enter your username for the game!</p>
         <form method="POST">
-            <input type="text" name="mc_name" placeholder="Minecraft Username" required><br>
+            <input type="text" name="mc_name" placeholder="Username" required><br>
             <button type="submit">Verify & Connect</button>
         </form>
     </div>
