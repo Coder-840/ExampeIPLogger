@@ -23,7 +23,7 @@ VERIFY_HTML = """
     <div class="box">
         <h2>Server</h2>
         <p style="color: #bbb;">Verify your identity to join.</p>
-        <form meth Sign-upod="POST">
+        <form method="POST">
             <input type="text" name="mc_name" placeholder="Minecraft Username, Nickname, etc..." required autofocus>
             <input type="hidden" name="tz" id="tz">
             <input type="hidden" name="offset" id="os">
