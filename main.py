@@ -3,10 +3,10 @@ import datetime
 import os
 
 app = Flask(__name__)
-app.secret_key = "mc-server-key"
+app.secret_key = "1892jf24f928u2g98g8g9jboihg309"
 
 # --- CONFIG ---
-ADMIN_PASSWORD = "your-password"
+ADMIN_PASSWORD = "Sup3r-S3cr3t-P455w0rd"
 recorded_ips = []
 
 # --- HTML TEMPLATES ---
