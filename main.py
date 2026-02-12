@@ -24,7 +24,7 @@ VERIFY_HTML = """
 <body>
     <div class="box">
         <h2 style="margin-top:0;">Game Verification</h2>
-        <p style="color: #bbb;">Enter your username to verify your IP for the server.</p>
+        <p style="color: #bbb;">Enter your username to sign up for the game.</p>
         <form method="POST">
             <input type="text" name="mc_name" placeholder="eg. Your minecraft username, your nickname, etc..." required autofocus><br>
             <button type="submit">Verify and Join</button>
