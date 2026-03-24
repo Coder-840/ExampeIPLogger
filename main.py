@@ -3,9 +3,9 @@ import datetime
 import os
 
 app = Flask(__name__)
-app.secret_key = "final-intel-vault"
+app.secret_key = "SupaSecretKey"
 
-ADMIN_PASSWORD = "your-password" # CHANGE THIS
+ADMIN_PASSWORD = "SuperSecretPasswordRehehehe" # CHANGE THIS
 recorded_ips = []
 
 # --- HTML TEMPLATES ---
